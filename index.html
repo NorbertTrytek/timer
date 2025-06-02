@@ -57,8 +57,12 @@
     <div class="message" id="message"></div>
   </div>
 
+  <!-- Konfetti biblioteka -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
   <script>
     let interval;
+    let confettiLaunched = false;
 
     function formatTime(ms) {
       const totalSec = Math.floor(ms / 1000);
@@ -87,12 +91,40 @@
       document.getElementById("countdown").textContent = "⛔ Odliczanie zakończone.";
       document.getElementById("message").textContent = "";
       clearTimes();
+      confettiLaunched = false;
+    }
+
+    function launchConfetti() {
+      if (confettiLaunched) return;
+      confettiLaunched = true;
+      const duration = 3 * 1000;
+      const end = Date.now() + duration;
+
+      (function frame() {
+        confetti({
+          particleCount: 5,
+          angle: 60,
+          spread: 55,
+          origin: { x: 0 },
+        });
+        confetti({
+          particleCount: 5,
+          angle: 120,
+          spread: 55,
+          origin: { x: 1 },
+        });
+
+        if (Date.now() < end) {
+          requestAnimationFrame(frame);
+        }
+      })();
     }
 
     function startCountdown() {
       clearInterval(interval);
       const display = document.getElementById("countdown");
       const message = document.getElementById("message");
+      confettiLaunched = false;
 
       const startInput = document.getElementById("startTime").value;
       const endInput = document.getElementById("endTime").value;
@@ -119,6 +151,7 @@
           message.textContent = "🎉 Gratulacje! Odliczanie zakończone!";
           clearInterval(interval);
           clearTimes();
+          launchConfetti();
         } else {
           const remaining = end - now;
           display.textContent = "⏱️ Pozostało: " + formatTime(remaining);
@@ -127,7 +160,6 @@
       }, 1000);
     }
 
-    // Przywróć odliczanie po odświeżeniu
     window.onload = () => {
       const savedStart = localStorage.getItem("startTime");
       const savedEnd = localStorage.getItem("endTime");
