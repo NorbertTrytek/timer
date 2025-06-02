@@ -29,6 +29,11 @@
       border-radius: 10px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
+    .message {
+      margin-top: 20px;
+      font-weight: bold;
+      font-size: 20px;
+    }
   </style>
 </head>
 <body>
@@ -49,6 +54,7 @@
     <button onclick="stopCountdown()">Zakończ teraz</button>
 
     <div id="countdown"></div>
+    <div class="message" id="message"></div>
   </div>
 
   <script>
@@ -62,6 +68,10 @@
       return `${h}h ${m}m ${s}s`;
     }
 
+    function formatDateForInput(date) {
+      return new Date(date).toISOString().slice(0, 16);
+    }
+
     function saveTimes(start, end) {
       localStorage.setItem("startTime", start);
       localStorage.setItem("endTime", end);
@@ -72,18 +82,27 @@
       localStorage.removeItem("endTime");
     }
 
+    function stopCountdown() {
+      clearInterval(interval);
+      document.getElementById("countdown").textContent = "⛔ Odliczanie zakończone.";
+      document.getElementById("message").textContent = "";
+      clearTimes();
+    }
+
     function startCountdown() {
       clearInterval(interval);
+      const display = document.getElementById("countdown");
+      const message = document.getElementById("message");
 
       const startInput = document.getElementById("startTime").value;
       const endInput = document.getElementById("endTime").value;
-      const display = document.getElementById("countdown");
 
       const start = new Date(startInput);
       const end = new Date(endInput);
 
       if (!startInput || !endInput || isNaN(start) || isNaN(end) || end <= start) {
         display.textContent = "❌ Nieprawidłowe daty.";
+        message.textContent = "";
         return;
       }
 
@@ -94,21 +113,18 @@
 
         if (now < start) {
           display.textContent = "⌛ Czekam na rozpoczęcie...";
+          message.textContent = "⚠️ Uwaga!!! Odliczanie zaraz się zacznie";
         } else if (now >= end) {
           display.textContent = "✅ Czas minął!";
+          message.textContent = "🎉 Gratulacje! Odliczanie zakończone!";
           clearInterval(interval);
           clearTimes();
         } else {
           const remaining = end - now;
           display.textContent = "⏱️ Pozostało: " + formatTime(remaining);
+          message.textContent = "";
         }
       }, 1000);
-    }
-
-    function stopCountdown() {
-      clearInterval(interval);
-      document.getElementById("countdown").textContent = "⛔ Odliczanie zakończone.";
-      clearTimes();
     }
 
     // Przywróć odliczanie po odświeżeniu
@@ -117,8 +133,8 @@
       const savedEnd = localStorage.getItem("endTime");
 
       if (savedStart && savedEnd) {
-        document.getElementById("startTime").value = savedStart;
-        document.getElementById("endTime").value = savedEnd;
+        document.getElementById("startTime").value = formatDateForInput(savedStart);
+        document.getElementById("endTime").value = formatDateForInput(savedEnd);
         startCountdown();
       }
     };
