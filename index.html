@@ -11,19 +11,16 @@
       text-align: center;
       padding: 40px;
     }
-
     input, button {
       padding: 10px;
       margin: 10px;
       font-size: 16px;
     }
-
     #countdown {
       font-size: 24px;
       margin-top: 20px;
       color: #333;
     }
-
     .container {
       max-width: 500px;
       margin: auto;
@@ -48,20 +45,14 @@
       <input type="datetime-local" id="endTime" />
     </label><br/>
 
-    <button onclick="setEndNow()">Ustaw koniec na teraz</button>
     <button onclick="startCountdown()">Start odliczania</button>
+    <button onclick="stopCountdown()">Zakończ teraz</button>
 
     <div id="countdown"></div>
   </div>
 
   <script>
     let interval;
-
-    function setEndNow() {
-      const now = new Date();
-      const formatted = now.toISOString().slice(0, 16);
-      document.getElementById("endTime").value = formatted;
-    }
 
     function formatTime(ms) {
       const sec = Math.floor(ms / 1000);
@@ -71,17 +62,38 @@
       return `${h}h ${m}m ${s}s`;
     }
 
+    function saveToStorage(start, end) {
+      localStorage.setItem('countdownStart', start);
+      localStorage.setItem('countdownEnd', end);
+    }
+
+    function clearStorage() {
+      localStorage.removeItem('countdownStart');
+      localStorage.removeItem('countdownEnd');
+    }
+
+    function stopCountdown() {
+      clearInterval(interval);
+      document.getElementById("countdown").textContent = "⛔ Odliczanie zatrzymane.";
+      clearStorage();
+    }
+
     function startCountdown() {
       clearInterval(interval);
 
-      const start = new Date(document.getElementById("startTime").value);
-      const end = new Date(document.getElementById("endTime").value);
+      const startInput = document.getElementById("startTime").value;
+      const endInput = document.getElementById("endTime").value;
+
+      const start = new Date(startInput);
+      const end = new Date(endInput);
       const display = document.getElementById("countdown");
 
       if (isNaN(start) || isNaN(end) || end <= start) {
         display.textContent = "❌ Wprowadź poprawne daty.";
         return;
       }
+
+      saveToStorage(startInput, endInput);
 
       interval = setInterval(() => {
         const now = new Date();
@@ -90,12 +102,25 @@
         } else if (now >= end) {
           display.textContent = "✅ Czas minął!";
           clearInterval(interval);
+          clearStorage();
         } else {
           const remaining = end - now;
           display.textContent = "⏱️ Pozostało: " + formatTime(remaining);
         }
       }, 1000);
     }
+
+    // Automatycznie przywracaj po odświeżeniu
+    window.addEventListener("load", () => {
+      const savedStart = localStorage.getItem("countdownStart");
+      const savedEnd = localStorage.getItem("countdownEnd");
+
+      if (savedStart && savedEnd) {
+        document.getElementById("startTime").value = savedStart;
+        document.getElementById("endTime").value = savedEnd;
+        startCountdown();
+      }
+    });
   </script>
 </body>
 </html>
