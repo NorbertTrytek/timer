@@ -34,6 +34,15 @@
       font-weight: bold;
       font-size: 20px;
     }
+    canvas.confetti-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 9999;
+    }
   </style>
 </head>
 <body>
@@ -57,11 +66,15 @@
     <div class="message" id="message"></div>
   </div>
 
-  <!-- Konfetti biblioteka -->
+  <!-- Konfetti canvas -->
+  <canvas class="confetti-canvas" id="confetti"></canvas>
+
+  <!-- Skrypt konfetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
     let interval;
+    let confettiInstance;
     let confettiLaunched = false;
 
     function formatTime(ms) {
@@ -97,21 +110,22 @@
     function launchConfetti() {
       if (confettiLaunched) return;
       confettiLaunched = true;
+
+      const canvas = document.getElementById("confetti");
+      const myConfetti = confetti.create(canvas, {
+        resize: true,
+        useWorker: true
+      });
+
+      // Strzelaj przez 3 sekundy
       const duration = 3 * 1000;
       const end = Date.now() + duration;
 
       (function frame() {
-        confetti({
+        myConfetti({
           particleCount: 5,
-          angle: 60,
-          spread: 55,
-          origin: { x: 0 },
-        });
-        confetti({
-          particleCount: 5,
-          angle: 120,
-          spread: 55,
-          origin: { x: 1 },
+          spread: 60,
+          origin: { y: 0.6 }
         });
 
         if (Date.now() < end) {
