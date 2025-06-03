@@ -61,7 +61,7 @@
 
     <button onclick="startCountdown()">Start odliczania</button>
     <button onclick="stopCountdown()">Zakończ teraz</button>
-    <button onclick="setEndToNow()">Ustaw koniec na teraz</button> <!-- NOWY PRZYCISK -->
+    <button onclick="setEndToNow()">Ustaw koniec za 5 sekund</button>
 
     <div id="countdown"></div>
     <div class="message" id="message"></div>
@@ -173,13 +173,16 @@
 
     function setEndToNow() {
       const now = new Date();
+      const end = new Date(now.getTime() + 5000); // 5 sekund do przodu
+
       const nowString = formatDateForInput(now);
-      document.getElementById("endTime").value = nowString;
+      const endString = formatDateForInput(end);
 
-      const startInput = document.getElementById("startTime").value;
-      saveTimes(startInput, nowString);
+      document.getElementById("startTime").value = nowString;
+      document.getElementById("endTime").value = endString;
 
-      startCountdown(); // ustawia koniec na teraz, więc od razu kończy się i wyświetla gratulacje + konfetti
+      saveTimes(nowString, endString);
+      startCountdown();
     }
 
     window.onload = () => {
