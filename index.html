@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Odliczanie czasu</title>
   <style>
     body {
@@ -75,7 +75,17 @@
     let interval;
     let confettiLaunched = false;
 
-    // Funkcja formatująca Date na lokalny string do datetime-local
+    // Parsuje string z datetime-local do obiektu Date w lokalnej strefie
+    function parseLocalDateTime(value) {
+      if (!value) return null;
+      const [datePart, timePart] = value.split('T');
+      if (!datePart || !timePart) return null;
+      const [year, month, day] = datePart.split('-').map(Number);
+      const [hours, minutes] = timePart.split(':').map(Number);
+      return new Date(year, month - 1, day, hours, minutes);
+    }
+
+    // Formatuje Date do stringa yyyy-MM-ddTHH:mm dla datetime-local
     function formatDateForInputLocal(date) {
       const pad = (num) => num.toString().padStart(2, '0');
 
@@ -147,11 +157,23 @@
       const startInput = document.getElementById("startTime").value;
       const endInput = document.getElementById("endTime").value;
 
-      const start = new Date(startInput);
-      const end = new Date(endInput);
-
-      if (!startInput || !endInput || isNaN(start) || isNaN(end) || end <= start) {
+      if (!startInput || !endInput) {
         display.textContent = "❌ Nieprawidłowe daty.";
+        message.textContent = "";
+        return;
+      }
+
+      const start = parseLocalDateTime(startInput);
+      const end = parseLocalDateTime(endInput);
+
+      if (!start || !end) {
+        display.textContent = "❌ Nieprawidłowe daty.";
+        message.textContent = "";
+        return;
+      }
+
+      if (end <= start) {
+        display.textContent = "❌ Data końcowa musi być po starcie.";
         message.textContent = "";
         return;
       }
