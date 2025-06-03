@@ -61,20 +61,18 @@
 
     <button onclick="startCountdown()">Start odliczania</button>
     <button onclick="stopCountdown()">Zakończ teraz</button>
+    <button onclick="setEndToNow()">Ustaw koniec na teraz</button>
 
     <div id="countdown"></div>
     <div class="message" id="message"></div>
   </div>
 
-  <!-- Konfetti canvas -->
   <canvas class="confetti-canvas" id="confetti"></canvas>
 
-  <!-- Skrypt konfetti -->
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
     let interval;
-    let confettiInstance;
     let confettiLaunched = false;
 
     function formatTime(ms) {
@@ -117,8 +115,7 @@
         useWorker: true
       });
 
-      // Strzelaj przez 3 sekundy
-      const duration = 3 * 1000;
+      const duration = 3000;
       const end = Date.now() + duration;
 
       (function frame() {
@@ -172,6 +169,13 @@
           message.textContent = "";
         }
       }, 1000);
+    }
+
+    function setEndToNow() {
+      const now = new Date();
+      document.getElementById("endTime").value = formatDateForInput(now);
+      saveTimes(document.getElementById("startTime").value, formatDateForInput(now));
+      startCountdown();
     }
 
     window.onload = () => {
