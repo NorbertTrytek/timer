@@ -83,12 +83,6 @@
       return `${h}h ${m}m ${s}s`;
     }
 
-    // Dodanie +2h do daty przed wpisaniem do pola
-    function formatDateForInput(date) {
-      const localDate = new Date(date.getTime() + 2 * 60 * 60 * 1000); // dodaj +2h
-      return localDate.toISOString().slice(0, 16);
-    }
-
     function saveTimes(start, end) {
       localStorage.setItem("startTime", start);
       localStorage.setItem("endTime", end);
@@ -177,13 +171,14 @@
       const now = new Date();
       const end = new Date(now.getTime() + 5000); // 5 sekund do przodu
 
-      const nowString = formatDateForInput(now);
-      const endString = formatDateForInput(end);
+      const startInput = document.getElementById("startTime").value;
+      const start = startInput ? startInput : now.toISOString().slice(0, 16);
+      const endString = end.toISOString().slice(0, 16);
 
-      document.getElementById("startTime").value = nowString;
+      // zmieniamy tylko endTime, startTime zostaje bez zmian
       document.getElementById("endTime").value = endString;
 
-      saveTimes(nowString, endString);
+      saveTimes(start, endString);
       startCountdown();
     }
 
