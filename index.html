@@ -8,19 +8,10 @@
     body {
       font-family: Arial, sans-serif;
       background: #f2f2f2;
-      text-align: center;
-      padding: 40px;
+      padding: 20px;
+      margin: 0;
     }
-    input, button {
-      padding: 10px;
-      margin: 10px;
-      font-size: 16px;
-    }
-    #countdown {
-      font-size: 24px;
-      margin-top: 20px;
-      color: #222;
-    }
+
     .container {
       background: #fff;
       padding: 20px;
@@ -29,19 +20,81 @@
       border-radius: 10px;
       box-shadow: 0 0 8px rgba(0,0,0,0.1);
     }
+
+    h1 {
+      text-align: center;
+    }
+
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin: 8px 0;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    #countdown {
+      font-size: 24px;
+      margin-top: 20px;
+      text-align: center;
+    }
+
     .message {
       margin-top: 20px;
       font-weight: bold;
-      font-size: 20px;
+      font-size: 18px;
+      text-align: center;
     }
+
+    #progressContainer {
+      width: 100%;
+      height: 20px;
+      background: #ddd;
+      border-radius: 10px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    #progressBar {
+      height: 100%;
+      width: 0%;
+      background: #28a745;
+      transition: width 1s linear;
+    }
+
     canvas.confetti-canvas {
       position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
       pointer-events: none;
       z-index: 9999;
+    }
+
+    @media screen and (max-width: 600px) {
+      .container {
+        padding: 15px;
+        margin: 10px;
+      }
+
+      input, button {
+        font-size: 14px;
+        padding: 10px;
+      }
+
+      #countdown {
+        font-size: 20px;
+      }
     }
   </style>
 </head>
@@ -49,51 +102,36 @@
   <div class="container">
     <h1>⏳ Odliczanie</h1>
 
-    <label>
-      Start:
-      <input type="datetime-local" id="startTime" />
-    </label><br/>
-
-    <label>
-      Koniec:
-      <input type="datetime-local" id="endTime" />
-    </label><br/>
+    <input type="datetime-local" id="startTime" />
+    <input type="datetime-local" id="endTime" />
 
     <button onclick="startCountdown()">Start odliczania</button>
     <button onclick="stopCountdown()">Zakończ teraz</button>
     <button onclick="setEndToNow()">Ustaw koniec za 5 sekund</button>
 
     <div id="countdown"></div>
+    <div id="progressContainer"><div id="progressBar"></div></div>
     <div class="message" id="message"></div>
   </div>
 
   <canvas class="confetti-canvas" id="confetti"></canvas>
-
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
   <script>
     let interval;
     let confettiLaunched = false;
+    let fullDuration = 0;
 
-    // Parsuje string z datetime-local do obiektu Date w lokalnej strefie
     function parseLocalDateTime(value) {
-      if (!value) return null;
       const [datePart, timePart] = value.split('T');
-      if (!datePart || !timePart) return null;
       const [year, month, day] = datePart.split('-').map(Number);
       const [hours, minutes] = timePart.split(':').map(Number);
       return new Date(year, month - 1, day, hours, minutes);
     }
 
-    // Formatuje Date do stringa yyyy-MM-ddTHH:mm dla datetime-local
     function formatDateForInputLocal(date) {
-      const pad = (num) => num.toString().padStart(2, '0');
-
-      return date.getFullYear() + '-' +
-             pad(date.getMonth() + 1) + '-' +
-             pad(date.getDate()) + 'T' +
-             pad(date.getHours()) + ':' +
-             pad(date.getMinutes());
+      const pad = (n) => n.toString().padStart(2, '0');
+      return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
     }
 
     function formatTime(ms) {
@@ -118,67 +156,47 @@
       clearInterval(interval);
       document.getElementById("countdown").textContent = "⛔ Odliczanie zakończone.";
       document.getElementById("message").textContent = "";
+      document.getElementById("progressBar").style.width = "100%";
       clearTimes();
-      confettiLaunched = false;
     }
 
     function launchConfetti() {
       if (confettiLaunched) return;
       confettiLaunched = true;
-
       const canvas = document.getElementById("confetti");
-      const myConfetti = confetti.create(canvas, {
-        resize: true,
-        useWorker: true
-      });
-
-      const duration = 3000;
-      const end = Date.now() + duration;
+      const myConfetti = confetti.create(canvas, { resize: true, useWorker: true });
+      const end = Date.now() + 3000;
 
       (function frame() {
-        myConfetti({
-          particleCount: 5,
-          spread: 60,
-          origin: { y: 0.6 }
-        });
-
-        if (Date.now() < end) {
-          requestAnimationFrame(frame);
-        }
+        myConfetti({ particleCount: 5, spread: 70, origin: { y: 0.6 } });
+        if (Date.now() < end) requestAnimationFrame(frame);
       })();
     }
 
     function startCountdown() {
       clearInterval(interval);
-      const display = document.getElementById("countdown");
-      const message = document.getElementById("message");
       confettiLaunched = false;
 
       const startInput = document.getElementById("startTime").value;
       const endInput = document.getElementById("endTime").value;
+      const display = document.getElementById("countdown");
+      const message = document.getElementById("message");
 
       if (!startInput || !endInput) {
-        display.textContent = "❌ Nieprawidłowe daty.";
-        message.textContent = "";
+        display.textContent = "❌ Ustaw daty.";
         return;
       }
 
       const start = parseLocalDateTime(startInput);
       const end = parseLocalDateTime(endInput);
 
-      if (!start || !end) {
-        display.textContent = "❌ Nieprawidłowe daty.";
-        message.textContent = "";
-        return;
-      }
-
       if (end <= start) {
-        display.textContent = "❌ Data końcowa musi być po starcie.";
-        message.textContent = "";
+        display.textContent = "❌ Koniec musi być po starcie.";
         return;
       }
 
       saveTimes(startInput, endInput);
+      fullDuration = end - start;
 
       interval = setInterval(() => {
         const now = new Date();
@@ -186,9 +204,11 @@
         if (now < start) {
           display.textContent = "⌛ Czekam na rozpoczęcie...";
           message.textContent = "⚠️ Uwaga!!! Odliczanie zaraz się zacznie";
+          updateProgress(0);
         } else if (now >= end) {
           display.textContent = "✅ Czas minął!";
           message.textContent = "🎉 Gratulacje! Odliczanie zakończone!";
+          updateProgress(100);
           clearInterval(interval);
           clearTimes();
           launchConfetti();
@@ -196,20 +216,26 @@
           const remaining = end - now;
           display.textContent = "⏱️ Pozostało: " + formatTime(remaining);
           message.textContent = "";
+          const progressPercent = ((now - start) / fullDuration) * 100;
+          updateProgress(progressPercent);
         }
       }, 1000);
     }
 
+    function updateProgress(percent) {
+      document.getElementById("progressBar").style.width = `${Math.min(percent, 100)}%`;
+    }
+
     function setEndToNow() {
       const now = new Date();
-      const end = new Date(now.getTime() + 5000); // 5 sekund do przodu
+      const end = new Date(now.getTime() + 5000);
 
       const startInput = document.getElementById("startTime").value;
-      const start = startInput ? startInput : formatDateForInputLocal(now);
+      const start = startInput || formatDateForInputLocal(now);
       const endString = formatDateForInputLocal(end);
 
-      // zmieniamy tylko endTime, startTime zostaje bez zmian
       document.getElementById("endTime").value = endString;
+      document.getElementById("startTime").value = start;
 
       saveTimes(start, endString);
       startCountdown();
