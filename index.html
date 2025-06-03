@@ -83,8 +83,10 @@
       return `${h}h ${m}m ${s}s`;
     }
 
+    // Dodanie +2h do daty przed wpisaniem do pola
     function formatDateForInput(date) {
-      return new Date(date).toISOString().slice(0, 16);
+      const localDate = new Date(date.getTime() + 2 * 60 * 60 * 1000); // dodaj +2h
+      return localDate.toISOString().slice(0, 16);
     }
 
     function saveTimes(start, end) {
@@ -190,8 +192,8 @@
       const savedEnd = localStorage.getItem("endTime");
 
       if (savedStart && savedEnd) {
-        document.getElementById("startTime").value = formatDateForInput(savedStart);
-        document.getElementById("endTime").value = formatDateForInput(savedEnd);
+        document.getElementById("startTime").value = savedStart;
+        document.getElementById("endTime").value = savedEnd;
         startCountdown();
       }
     };
