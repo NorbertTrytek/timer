@@ -75,6 +75,17 @@
     let interval;
     let confettiLaunched = false;
 
+    // Funkcja formatująca Date na lokalny string do datetime-local
+    function formatDateForInputLocal(date) {
+      const pad = (num) => num.toString().padStart(2, '0');
+
+      return date.getFullYear() + '-' +
+             pad(date.getMonth() + 1) + '-' +
+             pad(date.getDate()) + 'T' +
+             pad(date.getHours()) + ':' +
+             pad(date.getMinutes());
+    }
+
     function formatTime(ms) {
       const totalSec = Math.floor(ms / 1000);
       const h = Math.floor(totalSec / 3600);
@@ -172,8 +183,8 @@
       const end = new Date(now.getTime() + 5000); // 5 sekund do przodu
 
       const startInput = document.getElementById("startTime").value;
-      const start = startInput ? startInput : now.toISOString().slice(0, 16);
-      const endString = end.toISOString().slice(0, 16);
+      const start = startInput ? startInput : formatDateForInputLocal(now);
+      const endString = formatDateForInputLocal(end);
 
       // zmieniamy tylko endTime, startTime zostaje bez zmian
       document.getElementById("endTime").value = endString;
