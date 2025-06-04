@@ -1,15 +1,8 @@
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open("timer-cache").then(cache => {
-      return cache.addAll(["/", "/index.html", "/manifest.json"]);
-    })
-  );
-});
-
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(response => {
-      return response || fetch(e.request);
-    })
-  );
-});
+function setEndNow() {
+  console.log("Test zakończenia uruchomiony");
+  start = new Date(localStorage.getItem("start") || new Date());
+  end = new Date(Date.now() + 5000);
+  localStorage.setItem("end", end);
+  updateCountdown();
+  messageEl.textContent = "⏭️ Odliczanie zakończy się za 5 sekund!";
+}
