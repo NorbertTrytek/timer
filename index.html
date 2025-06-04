@@ -7,51 +7,67 @@
   <title>⏳ Timer</title>
   <link rel="manifest" href="manifest.json">
   <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to right, #83a4d4, #b6fbff);
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(to right top, #5eead4, #0d9488);
       margin: 0;
       padding: 0;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
+      color: #333;
     }
 
     .container {
-      background-color: #ffffffcc;
-      backdrop-filter: blur(8px);
-      padding: 30px 20px;
-      border-radius: 16px;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      max-width: 400px;
+      background-color: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+      max-width: 420px;
       width: 100%;
       text-align: center;
+      animation: slideUp 0.8s ease;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
     }
 
     h2 {
       margin-top: 0;
-      font-size: 1.4rem;
+      font-size: 1.5rem;
     }
 
     .timer {
-      font-size: 2.5rem;
+      font-size: 3rem;
+      font-weight: bold;
       margin: 20px 0;
-      color: #0d9488;
+      color: #0f766e;
     }
 
     input[type="text"], input[type="datetime-local"] {
       margin: 10px 0;
-      padding: 10px;
+      padding: 12px;
       width: 100%;
       font-size: 1em;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      box-sizing: border-box;
+      transition: border 0.3s ease;
+    }
+
+    input:focus {
+      border-color: #0d9488;
+      outline: none;
     }
 
     button {
-      margin: 8px 0;
-      padding: 10px;
+      margin: 10px 0;
+      padding: 12px;
       width: 100%;
       font-size: 1em;
       border: none;
@@ -60,31 +76,38 @@
       transition: 0.3s ease;
       background: linear-gradient(90deg, #0d9488, #2dd4bf);
       color: white;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+      font-weight: 600;
     }
 
     button:hover {
+      transform: scale(1.02);
       background: linear-gradient(90deg, #0f766e, #14b8a6);
     }
 
     #progressBar {
-      height: 10px;
+      height: 12px;
       background: #0d9488;
       width: 0%;
       margin: 1rem 0;
-      border-radius: 5px;
+      border-radius: 6px;
       transition: width 0.5s ease;
     }
 
     #message {
       font-weight: bold;
-      margin-top: 10px;
+      margin-top: 15px;
       color: #dc2626;
+      animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     @media (max-width: 480px) {
       .timer {
-        font-size: 2rem;
+        font-size: 2.2rem;
       }
     }
   </style>
@@ -97,13 +120,12 @@
     <div id="progressBar"></div>
     <input type="datetime-local" id="startTime" />
     <input type="datetime-local" id="endTime" />
-    <button onclick="setTimes()">Ustaw czas</button>
-    <button onclick="setEndNow()">Koniec</button>
+    <button onclick="setTimes()">🎯 Ustaw czas</button>
+    <button onclick="setEndNow()">🚀 Koniec za 5s</button>
     <button onclick="toggleSound()" id="soundToggle">🔊 Dźwięk</button>
     <div id="message"></div>
     <audio id="successSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
   </div>
-
   <script>
     let interval, soundOn = true, start, end;
     const countdownEl = document.getElementById("countdown");
@@ -151,7 +173,7 @@
         if (remaining <= 0) {
           clearInterval(interval);
           countdownEl.textContent = "🛑 Odliczanie zakończone.";
-          messageEl.textContent = "🎉 Gratulacje!";
+          messageEl.textContent = "🎉 Gratulacje! Cel osiągnięty!";
           document.title = "⏰ Koniec - " + goalTitle.textContent;
           playSound();
           return;
@@ -163,6 +185,7 @@
 
         countdownEl.textContent = `⏳ ${hours}:${minutes}:${seconds}`;
         document.title = `⏱ ${hours}:${minutes}:${seconds} - ${goalTitle.textContent}`;
+
         const progress = ((now - start) / total) * 100;
         progressBar.style.width = `${Math.min(progress, 100)}%`;
       }, 500);
