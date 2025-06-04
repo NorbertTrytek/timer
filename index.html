@@ -3,220 +3,162 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Odliczanie</title>
+  <meta name="theme-color" content="#0d9488" />
+  <title>⏳ Timer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #eef2f3;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+      font-family: sans-serif;
+      background: linear-gradient(135deg, #ecfeff, #ccfbf1);
       margin: 0;
+      padding: 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
     .container {
       background: white;
-      padding: 30px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.1);
-      text-align: center;
-      width: 90%;
+      padding: 2rem;
+      border-radius: 1rem;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
       max-width: 400px;
-    }
-    h1 {
-      margin-bottom: 20px;
-    }
-    input[type="datetime-local"] {
       width: 100%;
-      padding: 10px;
-      margin-bottom: 15px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      font-size: 16px;
+      text-align: center;
     }
-    .btn {
-      display: block;
+    .timer {
+      font-size: 3rem;
+      margin: 1rem 0;
+    }
+    .goal {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: #0f766e;
+    }
+    input, button {
+      margin: 0.5rem 0;
+      padding: 0.5rem;
       width: 100%;
-      margin: 10px auto;
-      padding: 12px;
-      border: none;
-      border-radius: 12px;
-      background: linear-gradient(to right, #4facfe, #00f2fe);
-      color: white;
-      font-weight: bold;
-      font-size: 16px;
-      cursor: pointer;
-      transition: transform 0.2s ease, background 0.3s ease;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    .btn:hover {
-      transform: scale(1.03);
-      background: linear-gradient(to right, #00f2fe, #4facfe);
-    }
-    #countdown {
-      font-size: 24px;
-      margin-top: 20px;
-      font-weight: bold;
-    }
-    #message {
-      margin-top: 20px;
-      font-size: 18px;
-      color: green;
+      font-size: 1rem;
     }
     #progressBar {
-      width: 100%;
       height: 10px;
-      background: #ddd;
-      border-radius: 5px;
-      margin-top: 20px;
-      overflow: hidden;
-    }
-    #progress {
-      height: 100%;
+      background: #0d9488;
       width: 0%;
-      background: #00f2fe;
-      transition: width 1s linear;
+      border-radius: 5px;
+      margin: 1rem 0;
+      transition: width 0.3s ease;
+    }
+    .muted {
+      opacity: 0.5;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>⏳ Odliczanie</h1>
+    <h2 id="goalTitle">🎯 Cel: (brak)</h2>
+    <input type="text" id="goalInput" placeholder="Wpisz cel..." />
+    <div class="timer" id="countdown">⏳ Wybierz czas</div>
+    <div id="progressBar"></div>
     <input type="datetime-local" id="startTime" />
     <input type="datetime-local" id="endTime" />
-    <button class="btn" onclick="startCountdown()">Start odliczania</button>
-    <button class="btn" onclick="endNow()">Zakończ teraz</button>
-    <button class="btn" onclick="setEndIn5Sec()">Koniec</button>
-    <button class="btn" id="soundBtn" onclick="toggleSound()">🔊 Dźwięk włączony</button>
-    <div id="countdown">Uwaga!!!</div>
+    <button onclick="setTimes()">Ustaw czas</button>
+    <button onclick="setEndNow()">Koniec</button>
+    <button onclick="toggleSound()" id="soundToggle"><i class="fa-solid fa-volume-high"></i> Dźwięk</button>
     <div id="message"></div>
-    <div id="progressBar"><div id="progress"></div></div>
-    <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg" preload="auto"></audio>
-    <canvas id="confettiCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+    <audio id="successSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
   </div>
-
   <script>
-    let interval, soundOn = true;
-    let startDate, endDate;
+    let interval, soundOn = true, start, end;
 
     const countdownEl = document.getElementById("countdown");
-    const progressEl = document.getElementById("progress");
     const messageEl = document.getElementById("message");
+    const progressBar = document.getElementById("progressBar");
+    const goalTitle = document.getElementById("goalTitle");
 
-    function startCountdown() {
-      startDate = new Date(document.getElementById("startTime").value);
-      endDate = new Date(document.getElementById("endTime").value);
-      if (isNaN(startDate) || isNaN(endDate) || startDate >= endDate) {
-        alert("Ustaw poprawne daty!");
-        return;
-      }
-      localStorage.setItem("startDate", startDate);
-      localStorage.setItem("endDate", endDate);
-      messageEl.textContent = "Odliczanie rozpoczęte!";
-      clearInterval(interval);
-      interval = setInterval(updateCountdown, 1000);
+    function setTimes() {
+      start = new Date(document.getElementById("startTime").value);
+      end = new Date(document.getElementById("endTime").value);
+      localStorage.setItem("start", start);
+      localStorage.setItem("end", end);
+      updateCountdown();
+      messageEl.textContent = "⏱ Odliczanie trwa...";
     }
 
-    function updateCountdown() {
-      const now = new Date();
-      const total = endDate - startDate;
-      const remaining = endDate - now;
-
-      if (remaining <= 0) {
-        clearInterval(interval);
-        countdownEl.textContent = "00:00:00";
-        messageEl.textContent = "🎉 Gratulacje!";
-        playSound();
-        launchConfetti();
-        updateProgress(100);
-      } else {
-        const hours = Math.floor((remaining / 1000 / 60 / 60) % 24);
-        const minutes = Math.floor((remaining / 1000 / 60) % 60);
-        const seconds = Math.floor((remaining / 1000) % 60);
-        countdownEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-        updateProgress(((total - remaining) / total) * 100);
-      }
-    }
-
-    function updateProgress(percent) {
-      progressEl.style.width = `${percent}%`;
-    }
-
-    function pad(num) {
-      return num.toString().padStart(2, "0");
-    }
-
-    function endNow() {
-      endDate = new Date();
-      localStorage.setItem("endDate", endDate);
-      messageEl.textContent = "Zakończono odliczanie.";
-    }
-
-    function setEndIn5Sec() {
-      const now = new Date();
-      endDate = new Date(now.getTime() + 5000);
-      localStorage.setItem("endDate", endDate);
-      messageEl.textContent = "Koniec ustawiony za 5 sekund!";
-      launchConfetti();
-      clearInterval(interval);
-      interval = setInterval(updateCountdown, 1000);
+    function setEndNow() {
+      start = new Date(localStorage.getItem("start"));
+      end = new Date(Date.now() + 5000);
+      localStorage.setItem("end", end);
+      messageEl.textContent = "⏭️ Odliczanie zakończy się za 5 sekund!";
     }
 
     function toggleSound() {
       soundOn = !soundOn;
-      document.getElementById("soundBtn").textContent = soundOn ? "🔊 Dźwięk włączony" : "🔇 Dźwięk wyciszony";
+      document.getElementById("soundToggle").innerHTML = soundOn ?
+        '<i class="fa-solid fa-volume-high"></i> Dźwięk' :
+        '<i class="fa-solid fa-volume-xmark"></i> Wyciszony';
     }
 
     function playSound() {
       if (soundOn) {
-        const sound = document.getElementById("successSound");
-        sound.currentTime = 0;
-        sound.play();
+        const s = document.getElementById("successSound");
+        s.currentTime = 0;
+        s.play().catch(() => {});
       }
     }
 
-    // Confetti
-    function launchConfetti() {
-      const canvas = document.getElementById("confettiCanvas");
-      const context = canvas.getContext("2d");
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    function updateCountdown() {
+      clearInterval(interval);
+      interval = setInterval(() => {
+        const now = new Date();
+        const total = end - start;
+        const remaining = end - now;
 
-      let pieces = Array.from({ length: 100 }, () => ({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height - canvas.height,
-        radius: Math.random() * 6 + 4,
-        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
-        tilt: Math.random() * 10 - 5,
-        speed: Math.random() * 2 + 2
-      }));
+        if (remaining <= 0) {
+          clearInterval(interval);
+          countdownEl.textContent = "🛑 Odliczanie zakończone.";
+          messageEl.textContent = "🎉 Gratulacje!";
+          document.title = "⏰ Koniec - " + goalTitle.textContent;
+          playSound();
+          return;
+        }
 
-      function draw() {
-        context.clearRect(0, 0, canvas.width, canvas.height);
-        pieces.forEach(p => {
-          context.beginPath();
-          context.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
-          context.fillStyle = p.color;
-          context.fill();
-          p.y += p.speed;
-          p.x += Math.sin(p.tilt);
-          if (p.y > canvas.height) p.y = 0;
-        });
-        requestAnimationFrame(draw);
-      }
-      draw();
+        const hours = String(Math.floor((remaining / (1000 * 60 * 60)))).padStart(2, '0');
+        const minutes = String(Math.floor((remaining / (1000 * 60)) % 60)).padStart(2, '0');
+        const seconds = String(Math.floor((remaining / 1000) % 60)).padStart(2, '0');
 
-      setTimeout(() => context.clearRect(0, 0, canvas.width, canvas.height), 5000);
+        countdownEl.textContent = `⏳ ${hours}:${minutes}:${seconds}`;
+        document.title = `⏱ ${hours}:${minutes}:${seconds} - ${goalTitle.textContent}`;
+
+        const progress = ((now - start) / total) * 100;
+        progressBar.style.width = `${progress}%`;
+      }, 500);
     }
 
-    // Load from storage
-    window.onload = () => {
-      if (localStorage.getItem("startDate") && localStorage.getItem("endDate")) {
-        startDate = new Date(localStorage.getItem("startDate"));
-        endDate = new Date(localStorage.getItem("endDate"));
-        interval = setInterval(updateCountdown, 1000);
+    document.getElementById("goalInput").addEventListener("input", e => {
+      const val = e.target.value.trim();
+      goalTitle.textContent = val ? `🎯 Cel: ${val}` : "🎯 Cel: (brak)";
+      localStorage.setItem("goal", val);
+    });
+
+    window.addEventListener("load", () => {
+      const savedStart = localStorage.getItem("start");
+      const savedEnd = localStorage.getItem("end");
+      const savedGoal = localStorage.getItem("goal");
+      if (savedStart && savedEnd) {
+        start = new Date(savedStart);
+        end = new Date(savedEnd);
+        document.getElementById("startTime").value = start.toISOString().slice(0,16);
+        document.getElementById("endTime").value = end.toISOString().slice(0,16);
+        updateCountdown();
       }
-    };
+      if (savedGoal) {
+        goalTitle.textContent = `🎯 Cel: ${savedGoal}`;
+        document.getElementById("goalInput").value = savedGoal;
+      }
+    });
   </script>
 </body>
 </html>
