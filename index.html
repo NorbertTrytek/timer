@@ -6,53 +6,45 @@
   <meta name="theme-color" content="#0d9488" />
   <title>⏳ Timer</title>
   <link rel="manifest" href="manifest.json">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     body {
       font-family: sans-serif;
-      background: linear-gradient(135deg, #ecfeff, #ccfbf1);
+      background-color: #f0f0f0;
       margin: 0;
-      padding: 2rem;
+      padding: 0;
       display: flex;
-      flex-direction: column;
-      align-items: center;
       justify-content: center;
-      min-height: 100vh;
+      align-items: center;
+      height: 100vh;
     }
     .container {
-      background: white;
-      padding: 2rem;
-      border-radius: 1rem;
-      box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
+      background-color: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.1);
+      max-width: 500px;
       width: 100%;
       text-align: center;
     }
-    .timer {
-      font-size: 3rem;
-      margin: 1rem 0;
+    h2 {
+      margin-top: 0;
     }
-    .goal {
-      font-size: 1.2rem;
-      margin-bottom: 0.5rem;
-      color: #0f766e;
+    .timer {
+      font-size: 2em;
+      margin: 20px 0;
     }
     input, button {
-      margin: 0.5rem 0;
-      padding: 0.5rem;
+      margin: 10px 0;
+      padding: 10px;
       width: 100%;
-      font-size: 1rem;
+      font-size: 1em;
     }
     #progressBar {
-      height: 10px;
+      height: 8px;
       background: #0d9488;
       width: 0%;
-      border-radius: 5px;
       margin: 1rem 0;
-      transition: width 0.3s ease;
-    }
-    .muted {
-      opacity: 0.5;
+      border-radius: 4px;
     }
   </style>
 </head>
@@ -66,7 +58,7 @@
     <input type="datetime-local" id="endTime" />
     <button onclick="setTimes()">Ustaw czas</button>
     <button onclick="setEndNow()">Koniec</button>
-    <button onclick="toggleSound()" id="soundToggle"><i class="fa-solid fa-volume-high"></i> Dźwięk</button>
+    <button onclick="toggleSound()" id="soundToggle">🔊 Dźwięk</button>
     <div id="message"></div>
     <audio id="successSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
   </div>
@@ -96,9 +88,7 @@
 
     function toggleSound() {
       soundOn = !soundOn;
-      document.getElementById("soundToggle").innerHTML = soundOn ?
-        '<i class="fa-solid fa-volume-high"></i> Dźwięk' :
-        '<i class="fa-solid fa-volume-xmark"></i> Wyciszony';
+      document.getElementById("soundToggle").textContent = soundOn ? '🔊 Dźwięk' : '🔇 Wyciszony';
     }
 
     function playSound() {
