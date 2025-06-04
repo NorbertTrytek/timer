@@ -8,8 +8,8 @@
   <link rel="manifest" href="manifest.json">
   <style>
     body {
-      font-family: sans-serif;
-      background-color: #f0f0f0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #83a4d4, #b6fbff);
       margin: 0;
       padding: 0;
       display: flex;
@@ -17,34 +17,75 @@
       align-items: center;
       height: 100vh;
     }
+
     .container {
-      background-color: white;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.1);
-      max-width: 500px;
+      background-color: #ffffffcc;
+      backdrop-filter: blur(8px);
+      padding: 30px 20px;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      max-width: 400px;
       width: 100%;
       text-align: center;
     }
+
     h2 {
       margin-top: 0;
+      font-size: 1.4rem;
     }
+
     .timer {
-      font-size: 2em;
+      font-size: 2.5rem;
       margin: 20px 0;
+      color: #0d9488;
     }
-    input, button {
+
+    input[type="text"], input[type="datetime-local"] {
       margin: 10px 0;
       padding: 10px;
       width: 100%;
       font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 8px;
     }
+
+    button {
+      margin: 8px 0;
+      padding: 10px;
+      width: 100%;
+      font-size: 1em;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: 0.3s ease;
+      background: linear-gradient(90deg, #0d9488, #2dd4bf);
+      color: white;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    }
+
+    button:hover {
+      background: linear-gradient(90deg, #0f766e, #14b8a6);
+    }
+
     #progressBar {
-      height: 8px;
+      height: 10px;
       background: #0d9488;
       width: 0%;
       margin: 1rem 0;
-      border-radius: 4px;
+      border-radius: 5px;
+      transition: width 0.5s ease;
+    }
+
+    #message {
+      font-weight: bold;
+      margin-top: 10px;
+      color: #dc2626;
+    }
+
+    @media (max-width: 480px) {
+      .timer {
+        font-size: 2rem;
+      }
     }
   </style>
 </head>
@@ -62,9 +103,9 @@
     <div id="message"></div>
     <audio id="successSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
   </div>
+
   <script>
     let interval, soundOn = true, start, end;
-
     const countdownEl = document.getElementById("countdown");
     const messageEl = document.getElementById("message");
     const progressBar = document.getElementById("progressBar");
@@ -80,9 +121,10 @@
     }
 
     function setEndNow() {
-      start = new Date(localStorage.getItem("start"));
+      start = new Date(localStorage.getItem("start") || new Date());
       end = new Date(Date.now() + 5000);
       localStorage.setItem("end", end);
+      updateCountdown();
       messageEl.textContent = "⏭️ Odliczanie zakończy się za 5 sekund!";
     }
 
@@ -121,9 +163,8 @@
 
         countdownEl.textContent = `⏳ ${hours}:${minutes}:${seconds}`;
         document.title = `⏱ ${hours}:${minutes}:${seconds} - ${goalTitle.textContent}`;
-
         const progress = ((now - start) / total) * 100;
-        progressBar.style.width = `${progress}%`;
+        progressBar.style.width = `${Math.min(progress, 100)}%`;
       }, 500);
     }
 
