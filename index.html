@@ -2,242 +2,221 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Odliczanie czasu</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Odliczanie</title>
   <style>
     body {
-      margin: 0;
-      font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(to bottom right, #f0f4ff, #dbeafe);
+      font-family: Arial, sans-serif;
+      background: #eef2f3;
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      margin: 0;
     }
-
     .container {
       background: white;
       padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+      text-align: center;
       width: 90%;
       max-width: 400px;
-      box-sizing: border-box;
-      text-align: center;
     }
-
     h1 {
-      font-size: 28px;
       margin-bottom: 20px;
     }
-
     input[type="datetime-local"] {
       width: 100%;
-      padding: 12px;
-      font-size: 16px;
-      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 8px;
       border: 1px solid #ccc;
-      margin-bottom: 12px;
-      box-sizing: border-box;
-    }
-
-    button {
-      width: 100%;
-      padding: 12px;
       font-size: 16px;
-      font-weight: bold;
-      color: white;
+    }
+    .btn {
+      display: block;
+      width: 100%;
+      margin: 10px auto;
+      padding: 12px;
       border: none;
       border-radius: 12px;
-      margin-bottom: 10px;
-      cursor: pointer;
       background: linear-gradient(to right, #4facfe, #00f2fe);
-      transition: 0.3s ease;
+      color: white;
+      font-weight: bold;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.3s ease;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
-
-    button:hover {
-      transform: scale(1.02);
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    .btn:hover {
+      transform: scale(1.03);
+      background: linear-gradient(to right, #00f2fe, #4facfe);
     }
-
-    #progressContainer {
-      background: #ddd;
-      border-radius: 10px;
-      overflow: hidden;
-      height: 12px;
-      margin-top: 16px;
+    #countdown {
+      font-size: 24px;
+      margin-top: 20px;
+      font-weight: bold;
     }
-
+    #message {
+      margin-top: 20px;
+      font-size: 18px;
+      color: green;
+    }
     #progressBar {
+      width: 100%;
+      height: 10px;
+      background: #ddd;
+      border-radius: 5px;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+    #progress {
       height: 100%;
       width: 0%;
-      background-color: #28a745;
-      transition: width 0.3s ease;
-    }
-
-    .message {
-      font-size: 16px;
-      margin-top: 10px;
-      color: #333;
-    }
-
-    canvas.confetti-canvas {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      pointer-events: none;
-      z-index: 9999;
+      background: #00f2fe;
+      transition: width 1s linear;
     }
   </style>
 </head>
 <body>
+  <div class="container">
+    <h1>⏳ Odliczanie</h1>
+    <input type="datetime-local" id="startTime" />
+    <input type="datetime-local" id="endTime" />
+    <button class="btn" onclick="startCountdown()">Start odliczania</button>
+    <button class="btn" onclick="endNow()">Zakończ teraz</button>
+    <button class="btn" onclick="setEndIn5Sec()">Koniec</button>
+    <button class="btn" id="soundBtn" onclick="toggleSound()">🔊 Dźwięk włączony</button>
+    <div id="countdown">Uwaga!!!</div>
+    <div id="message"></div>
+    <div id="progressBar"><div id="progress"></div></div>
+    <audio id="successSound" src="https://actions.google.com/sounds/v1/cartoon/concussive_drum_hit.ogg" preload="auto"></audio>
+    <canvas id="confettiCanvas" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none;"></canvas>
+  </div>
 
-<div class="container">
-  <h1>⏳ Odliczanie</h1>
-  <input type="datetime-local" id="startTime">
-  <input type="datetime-local" id="endTime">
+  <script>
+    let interval, soundOn = true;
+    let startDate, endDate;
 
-  <button onclick="startCountdown()">Start odliczania</button>
-  <button onclick="stopCountdown()">Zakończ teraz</button>
-  <button onclick="setEndToNow()">Koniec</button>
-  <button onclick="toggleSound()">🔈 Włącz/Wyłącz dźwięk</button>
+    const countdownEl = document.getElementById("countdown");
+    const progressEl = document.getElementById("progress");
+    const messageEl = document.getElementById("message");
 
-  <div id="countdown" class="message"></div>
-  <div id="progressContainer"><div id="progressBar"></div></div>
-  <div class="message" id="message"></div>
-</div>
-
-<audio id="alarmSound" src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" preload="auto"></audio>
-<canvas class="confetti-canvas" id="confetti"></canvas>
-<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
-
-<script>
-  let interval;
-  let soundOn = true;
-  let confettiLaunched = false;
-  let fullDuration = 0;
-
-  function toggleSound() {
-    soundOn = !soundOn;
-    alert(`Dźwięk ${soundOn ? 'włączony' : 'wyłączony'}`);
-  }
-
-  function playSound() {
-    if (soundOn) {
-      document.getElementById('alarmSound').play();
-    }
-  }
-
-  function formatDateInput(date) {
-    const pad = (n) => n.toString().padStart(2, '0');
-    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
-  }
-
-  function parseDate(input) {
-    const [d, t] = input.split('T');
-    const [y, m, day] = d.split('-').map(Number);
-    const [h, min] = t.split(':').map(Number);
-    return new Date(y, m - 1, day, h, min);
-  }
-
-  function setEndToNow() {
-    const now = new Date();
-    const end = new Date(now.getTime() + 5000);
-    document.getElementById("endTime").value = formatDateInput(end);
-    if (!document.getElementById("startTime").value)
-      document.getElementById("startTime").value = formatDateInput(now);
-    saveTimes();
-    startCountdown();
-  }
-
-  function saveTimes() {
-    localStorage.setItem("startTime", document.getElementById("startTime").value);
-    localStorage.setItem("endTime", document.getElementById("endTime").value);
-  }
-
-  function clearTimes() {
-    localStorage.removeItem("startTime");
-    localStorage.removeItem("endTime");
-  }
-
-  function stopCountdown() {
-    clearInterval(interval);
-    document.getElementById("countdown").textContent = "⛔ Zakończono ręcznie.";
-    document.getElementById("progressBar").style.width = "100%";
-    clearTimes();
-  }
-
-  function formatTime(ms) {
-    const s = Math.floor(ms / 1000);
-    const h = Math.floor(s / 3600);
-    const m = Math.floor((s % 3600) / 60);
-    const sec = s % 60;
-    return `${h}h ${m}m ${sec}s`;
-  }
-
-  function startCountdown() {
-    clearInterval(interval);
-    confettiLaunched = false;
-    const start = parseDate(document.getElementById("startTime").value);
-    const end = parseDate(document.getElementById("endTime").value);
-    if (end <= start) {
-      document.getElementById("countdown").textContent = "❌ Błąd w datach.";
-      return;
-    }
-
-    fullDuration = end - start;
-    saveTimes();
-
-    interval = setInterval(() => {
-      const now = new Date();
-      const countdown = document.getElementById("countdown");
-      const msg = document.getElementById("message");
-
-      if (now < start) {
-        countdown.textContent = "⏳ Czekam na rozpoczęcie...";
-        msg.textContent = "⚠️ Uwaga!!! Odliczanie zaraz się zacznie";
-        updateProgress(0);
-      } else if (now >= end) {
-        countdown.textContent = "✅ Czas minął!";
-        msg.textContent = "🎉 Gratulacje! Koniec odliczania!";
-        updateProgress(100);
-        clearInterval(interval);
-        playSound();
-        clearTimes();
-        if (!confettiLaunched) launchConfetti();
-      } else {
-        const left = end - now;
-        countdown.textContent = "Pozostało: " + formatTime(left);
-        msg.textContent = "";
-        updateProgress(((now - start) / fullDuration) * 100);
+    function startCountdown() {
+      startDate = new Date(document.getElementById("startTime").value);
+      endDate = new Date(document.getElementById("endTime").value);
+      if (isNaN(startDate) || isNaN(endDate) || startDate >= endDate) {
+        alert("Ustaw poprawne daty!");
+        return;
       }
-    }, 1000);
-  }
-
-  function updateProgress(pct) {
-    document.getElementById("progressBar").style.width = `${pct.toFixed(1)}%`;
-  }
-
-  function launchConfetti() {
-    confettiLaunched = true;
-    const canvas = document.getElementById("confetti");
-    const confettiGen = confetti.create(canvas, { resize: true, useWorker: true });
-    const end = Date.now() + 3000;
-    (function loop() {
-      confettiGen({ particleCount: 6, spread: 80, origin: { y: 0.6 } });
-      if (Date.now() < end) requestAnimationFrame(loop);
-    })();
-  }
-
-  window.onload = () => {
-    const savedStart = localStorage.getItem("startTime");
-    const savedEnd = localStorage.getItem("endTime");
-    if (savedStart && savedEnd) {
-      document.getElementById("startTime").value = savedStart;
-      document.getElementById("endTime").value = savedEnd;
-      startCountdown();
+      localStorage.setItem("startDate", startDate);
+      localStorage.setItem("endDate", endDate);
+      messageEl.textContent = "Odliczanie rozpoczęte!";
+      clearInterval(interval);
+      interval = setInterval(updateCountdown, 1000);
     }
-  };
-</script>
+
+    function updateCountdown() {
+      const now = new Date();
+      const total = endDate - startDate;
+      const remaining = endDate - now;
+
+      if (remaining <= 0) {
+        clearInterval(interval);
+        countdownEl.textContent = "00:00:00";
+        messageEl.textContent = "🎉 Gratulacje!";
+        playSound();
+        launchConfetti();
+        updateProgress(100);
+      } else {
+        const hours = Math.floor((remaining / 1000 / 60 / 60) % 24);
+        const minutes = Math.floor((remaining / 1000 / 60) % 60);
+        const seconds = Math.floor((remaining / 1000) % 60);
+        countdownEl.textContent = `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+        updateProgress(((total - remaining) / total) * 100);
+      }
+    }
+
+    function updateProgress(percent) {
+      progressEl.style.width = `${percent}%`;
+    }
+
+    function pad(num) {
+      return num.toString().padStart(2, "0");
+    }
+
+    function endNow() {
+      endDate = new Date();
+      localStorage.setItem("endDate", endDate);
+      messageEl.textContent = "Zakończono odliczanie.";
+    }
+
+    function setEndIn5Sec() {
+      const now = new Date();
+      endDate = new Date(now.getTime() + 5000);
+      localStorage.setItem("endDate", endDate);
+      messageEl.textContent = "Koniec ustawiony za 5 sekund!";
+      launchConfetti();
+      clearInterval(interval);
+      interval = setInterval(updateCountdown, 1000);
+    }
+
+    function toggleSound() {
+      soundOn = !soundOn;
+      document.getElementById("soundBtn").textContent = soundOn ? "🔊 Dźwięk włączony" : "🔇 Dźwięk wyciszony";
+    }
+
+    function playSound() {
+      if (soundOn) {
+        const sound = document.getElementById("successSound");
+        sound.currentTime = 0;
+        sound.play();
+      }
+    }
+
+    // Confetti
+    function launchConfetti() {
+      const canvas = document.getElementById("confettiCanvas");
+      const context = canvas.getContext("2d");
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+
+      let pieces = Array.from({ length: 100 }, () => ({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height - canvas.height,
+        radius: Math.random() * 6 + 4,
+        color: `hsl(${Math.random() * 360}, 100%, 50%)`,
+        tilt: Math.random() * 10 - 5,
+        speed: Math.random() * 2 + 2
+      }));
+
+      function draw() {
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        pieces.forEach(p => {
+          context.beginPath();
+          context.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+          context.fillStyle = p.color;
+          context.fill();
+          p.y += p.speed;
+          p.x += Math.sin(p.tilt);
+          if (p.y > canvas.height) p.y = 0;
+        });
+        requestAnimationFrame(draw);
+      }
+      draw();
+
+      setTimeout(() => context.clearRect(0, 0, canvas.width, canvas.height), 5000);
+    }
+
+    // Load from storage
+    window.onload = () => {
+      if (localStorage.getItem("startDate") && localStorage.getItem("endDate")) {
+        startDate = new Date(localStorage.getItem("startDate"));
+        endDate = new Date(localStorage.getItem("endDate"));
+        interval = setInterval(updateCountdown, 1000);
+      }
+    };
+  </script>
 </body>
 </html>
