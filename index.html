@@ -3,9 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#0d9488" />
   <title>⏳ Timer</title>
-  <link rel="manifest" href="manifest.json">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -29,14 +27,14 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
+      min-height: 100vh;
       color: var(--text);
       transition: background 0.5s ease, color 0.5s ease;
     }
 
     .container {
       background-color: var(--card);
-      padding: 30px;
+      padding: 30px 20px 40px;
       border-radius: 20px;
       box-shadow: 0 10px 25px rgba(0,0,0,0.2);
       max-width: 420px;
@@ -52,8 +50,9 @@
     }
 
     h2 {
-      margin-top: 0;
+      margin-top: 10px;
       font-size: 1.5rem;
+      word-break: break-word;
     }
 
     .timer {
@@ -124,12 +123,13 @@
       top: 10px;
       right: 10px;
       display: flex;
+      flex-direction: column;
       gap: 10px;
     }
 
     .top-controls button {
       padding: 8px 12px;
-      font-size: 0.9rem;
+      font-size: 0.85rem;
       background: #0d9488;
       color: white;
       border-radius: 8px;
@@ -149,7 +149,7 @@
 <body>
   <div class="container">
     <div class="top-controls">
-      <button onclick="toggleDarkMode()" id="darkToggle">🌙 Tryb</button>
+      <button onclick="toggleDarkMode()" id="darkToggle">🌗 Tryb</button>
       <button onclick="clearData()">🗑 Wyczyść</button>
     </div>
     <h2 id="goalTitle">🎯 Cel: (brak)</h2>
@@ -159,11 +159,13 @@
     <input type="datetime-local" id="startTime" />
     <input type="datetime-local" id="endTime" />
     <button onclick="setTimes()">🎯 Ustaw czas</button>
-    <button onclick="setEndNow()">🧪 Testuj zakończenie</button>
+    <button onclick="setEndNow()">✅ Koniec za 5 sek</button>
     <button onclick="toggleSound()" id="soundToggle">🔊 Dźwięk</button>
     <div id="message"></div>
     <audio id="successSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
+    <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999;"></canvas>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <script>
     let interval, soundOn = true, start, end;
     const countdownEl = document.getElementById("countdown");
@@ -181,7 +183,6 @@
     }
 
     function setEndNow() {
-      console.log("Test zakończenia uruchomiony");
       start = new Date(localStorage.getItem("start") || new Date());
       end = new Date(Date.now() + 5000);
       localStorage.setItem("end", end);
@@ -202,6 +203,14 @@
       }
     }
 
+    function launchConfetti() {
+      confetti({
+        particleCount: 150,
+        spread: 100,
+        origin: { y: 0.6 }
+      });
+    }
+
     function updateCountdown() {
       clearInterval(interval);
       interval = setInterval(() => {
@@ -215,6 +224,7 @@
           messageEl.textContent = "🎉 Gratulacje! Cel osiągnięty!";
           document.title = "⏰ Koniec - " + goalTitle.textContent;
           playSound();
+          launchConfetti();
           return;
         }
 
