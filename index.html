@@ -6,7 +6,6 @@
   <meta name="theme-color" content="#0d9488" />
   <title>⏳ Timer</title>
   <link rel="manifest" href="manifest.json">
-  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
@@ -120,19 +119,24 @@
       to { opacity: 1; }
     }
 
-    #darkToggle {
+    .top-controls {
       position: absolute;
       top: 10px;
       right: 10px;
-      background: transparent;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
-      color: var(--text);
-      transition: transform 0.3s;
+      display: flex;
+      gap: 10px;
     }
-    #darkToggle:hover {
-      transform: scale(1.2);
+
+    .top-controls button {
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      background: #0d9488;
+      color: white;
+      border-radius: 8px;
+    }
+
+    .top-controls button:hover {
+      background: #0f766e;
     }
 
     @media (max-width: 480px) {
@@ -143,8 +147,11 @@
   </style>
 </head>
 <body>
-  <button id="darkToggle" onclick="toggleDarkMode()">🌞/🌙</button>
   <div class="container">
+    <div class="top-controls">
+      <button onclick="toggleDarkMode()" id="darkToggle">🌙 Tryb</button>
+      <button onclick="clearData()">🗑 Wyczyść</button>
+    </div>
     <h2 id="goalTitle">🎯 Cel: (brak)</h2>
     <input type="text" id="goalInput" placeholder="Wpisz cel..." />
     <div class="timer" id="countdown">⏳ Wybierz czas</div>
@@ -152,8 +159,7 @@
     <input type="datetime-local" id="startTime" />
     <input type="datetime-local" id="endTime" />
     <button onclick="setTimes()">🎯 Ustaw czas</button>
-    <button onclick="setEndNow()">🚀 Koniec</button>
-    <button onclick="stopCountdown()">⛔ Zakończ teraz</button>
+    <button onclick="setEndNow()">🧪 Testuj zakończenie</button>
     <button onclick="toggleSound()" id="soundToggle">🔊 Dźwięk</button>
     <div id="message"></div>
     <audio id="successSound" src="https://www.soundjay.com/human/sounds/applause-8.mp3" preload="auto"></audio>
@@ -175,17 +181,12 @@
     }
 
     function setEndNow() {
+      console.log("Test zakończenia uruchomiony");
       start = new Date(localStorage.getItem("start") || new Date());
       end = new Date(Date.now() + 5000);
       localStorage.setItem("end", end);
       updateCountdown();
       messageEl.textContent = "⏭️ Odliczanie zakończy się za 5 sekund!";
-    }
-
-    function stopCountdown() {
-      clearInterval(interval);
-      countdownEl.textContent = "🛑 Odliczanie przerwane.";
-      messageEl.textContent = "⛔ Timer zatrzymany ręcznie.";
     }
 
     function toggleSound() {
@@ -201,14 +202,6 @@
       }
     }
 
-    function launchConfetti() {
-      confetti({
-        particleCount: 100,
-        spread: 70,
-        origin: { y: 0.6 }
-      });
-    }
-
     function updateCountdown() {
       clearInterval(interval);
       interval = setInterval(() => {
@@ -222,7 +215,6 @@
           messageEl.textContent = "🎉 Gratulacje! Cel osiągnięty!";
           document.title = "⏰ Koniec - " + goalTitle.textContent;
           playSound();
-          launchConfetti();
           return;
         }
 
@@ -241,6 +233,13 @@
     function toggleDarkMode() {
       document.body.classList.toggle("dark");
       localStorage.setItem("darkMode", document.body.classList.contains("dark"));
+    }
+
+    function clearData() {
+      localStorage.removeItem("start");
+      localStorage.removeItem("end");
+      localStorage.removeItem("goal");
+      location.reload();
     }
 
     document.getElementById("goalInput").addEventListener("input", e => {
