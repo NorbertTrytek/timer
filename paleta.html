@@ -4,11 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Skaner Palet i Kartonów</title>
-  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     body { font-family: sans-serif; padding: 20px; }
-    #qr-reader { width: 300px; margin-bottom: 20px; }
     .paleta { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    input[type="text"] {
+      padding: 10px;
+      width: 100%;
+      max-width: 300px;
+      font-size: 1.2em;
+      margin-bottom: 20px;
+    }
     button { margin-top: 5px; }
   </style>
 </head>
@@ -23,7 +28,7 @@
     </select>
   </div>
 
-  <div id="qr-reader"></div>
+  <input type="text" id="scanner-input" placeholder="Zeskanuj kod..." autofocus />
 
   <div id="status"></div>
 
@@ -31,7 +36,7 @@
   <div id="palety-lista"></div>
 
   <script>
-    const palety = {}; // { paletaId: [karton1, karton2, ...] }
+    const palety = {};
     let currentPaleta = null;
 
     function showPalety() {
@@ -60,18 +65,18 @@
       }
     }
 
-    function onScanSuccess(decodedText) {
+    function obsluzKod(kod) {
       const mode = document.getElementById('mode').value;
       const status = document.getElementById('status');
 
       if (mode === 'paleta') {
-        if (!palety[decodedText]) {
-          palety[decodedText] = [];
-          status.innerText = `✅ Dodano nową paletę: ${decodedText}`;
+        if (!palety[kod]) {
+          palety[kod] = [];
+          status.innerText = `✅ Dodano nową paletę: ${kod}`;
         } else {
-          status.innerText = `ℹ️ Wybrano istniejącą paletę: ${decodedText}`;
+          status.innerText = `ℹ️ Wybrano istniejącą paletę: ${kod}`;
         }
-        currentPaleta = decodedText;
+        currentPaleta = kod;
       } else if (mode === 'karton') {
         if (!currentPaleta) {
           status.innerText = `⚠️ Najpierw zeskanuj paletę!`;
@@ -81,22 +86,27 @@
           status.innerText = `❌ Paleta ${currentPaleta} ma już 20 kartonów!`;
           return;
         }
-        palety[currentPaleta].push(decodedText);
-        status.innerText = `✅ Karton ${decodedText} dodany do palety ${currentPaleta}`;
+        palety[currentPaleta].push(kod);
+        status.innerText = `✅ Karton ${kod} dodany do palety ${currentPaleta}`;
       }
 
       showPalety();
     }
 
-    const qrReader = new Html5Qrcode("qr-reader");
-    qrReader.start(
-      { facingMode: "environment" },
-      {
-        fps: 10,
-        qrbox: 250
-      },
-      onScanSuccess
-    );
+    document.getElementById('scanner-input').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        const kod = this.value.trim();
+        if (kod) {
+          obsluzKod(kod);
+          this.value = '';
+        }
+      }
+    });
+
+    // autofocus na input
+    window.onload = () => {
+      document.getElementById('scanner-input').focus();
+    };
   </script>
 </body>
 </html>
