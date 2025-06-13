@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pl">
 <head>
@@ -10,6 +9,7 @@
     body { font-family: sans-serif; padding: 20px; }
     #qr-reader { width: 300px; margin-bottom: 20px; }
     .paleta { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+    button { margin-top: 5px; }
   </style>
 </head>
 <body>
@@ -40,8 +40,23 @@
       for (const [paletaId, kartony] of Object.entries(palety)) {
         const el = document.createElement('div');
         el.className = 'paleta';
-        el.innerHTML = `<strong>Paleta:</strong> ${paletaId}<br><strong>Kartony:</strong> ${kartony.join(', ')}`;
+        el.innerHTML = `
+          <strong>Paleta:</strong> ${paletaId}<br>
+          <strong>Kartony:</strong> ${kartony.join(', ') || 'Brak'}<br>
+          <button onclick="usunPalete('${paletaId}')">🗑️ Usuń</button>
+        `;
         lista.appendChild(el);
+      }
+    }
+
+    function usunPalete(paletaId) {
+      if (confirm(`Czy na pewno chcesz usunąć paletę: ${paletaId}?`)) {
+        delete palety[paletaId];
+        if (currentPaleta === paletaId) {
+          currentPaleta = null;
+        }
+        document.getElementById('status').innerText = `🗑️ Paleta ${paletaId} została usunięta`;
+        showPalety();
       }
     }
 
