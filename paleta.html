@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skaner Palet i Kartonów</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    body { font-family: sans-serif; padding: 20px; }
+    #qr-reader { width: 300px; margin-bottom: 20px; }
+    .paleta { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <h1>📦 Skaner Palet i Kartonów</h1>
+
+  <div>
+    <label for="mode">Tryb skanowania:</label>
+    <select id="mode">
+      <option value="paleta">Skanuj Paletę</option>
+      <option value="karton">Skanuj Karton</option>
+    </select>
+  </div>
+
+  <div id="qr-reader"></div>
+
+  <div id="status"></div>
+
+  <h2>📋 Lista Palet</h2>
+  <div id="palety-lista"></div>
+
+  <script>
+    const palety = {}; // { paletaId: [karton1, karton2, ...] }
+    let currentPaleta = null;
+
+    function showPalety() {
+      const lista = document.getElementById('palety-lista');
+      lista.innerHTML = '';
+      for (const [paletaId, kartony] of Object.entries(palety)) {
+        const el = document.createElement('div');
+        el.className = 'paleta';
+        el.innerHTML = `<strong>Paleta:</strong> ${paletaId}<br><strong>Kartony:</strong> ${kartony.join(', ')}`;
+        lista.appendChild(el);
+      }
+    }
+
+    function onScanSuccess(decodedText) {
+      const mode = document.getElementById('mode').value;
+      const status = document.getElementById('status');
+
+      if (mode === 'paleta') {
+        if (!palety[decodedText]) {
+          palety[decodedText] = [];
+          status.innerText = `✅ Dodano nową paletę: ${decodedText}`;
+        } else {
+          status.innerText = `ℹ️ Wybrano istniejącą paletę: ${decodedText}`;
+        }
+        currentPaleta = decodedText;
+      } else if (mode === 'karton') {
+        if (!currentPaleta) {
+          status.innerText = `⚠️ Najpierw zeskanuj paletę!`;
+          return;
+        }
+        if (palety[currentPaleta].length >= 20) {
+          status.innerText = `❌ Paleta ${currentPaleta} ma już 20 kartonów!`;
+          return;
+        }
+        palety[currentPaleta].push(decodedText);
+        status.innerText = `✅ Karton ${decodedText} dodany do palety ${currentPaleta}`;
+      }
+
+      showPalety();
+    }
+
+    const qrReader = new Html5Qrcode("qr-reader");
+    qrReader.start(
+      { facingMode: "environment" },
+      {
+        fps: 10,
+        qrbox: 250
+      },
+      onScanSuccess
+    );
+  </script>
+</body>
+</html>
